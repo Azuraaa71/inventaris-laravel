@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('ADMIN_EMAIL');
-        $password = env('ADMIN_PASSWORD');
+        $email = config('inventory.admin_email');
+        $password = config('inventory.admin_password');
 
         if (! $email || ! $password || strlen($password) < 12) {
             throw new RuntimeException('Atur ADMIN_EMAIL dan ADMIN_PASSWORD minimal 12 karakter pada .env sebelum menjalankan db:seed.');
