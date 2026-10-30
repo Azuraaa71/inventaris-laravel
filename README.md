@@ -15,7 +15,7 @@ Aplikasi inventaris berbasis Laravel untuk mengelola produk, kategori, pengguna,
 
 ## Teknologi
 
-- PHP 8.3+
+- PHP 8.4.1+
 - Laravel 13
 - SQLite (default)
 - Bootstrap 5
