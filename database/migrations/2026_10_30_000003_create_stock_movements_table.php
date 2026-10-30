@@ -23,7 +23,7 @@ return new class extends Migration
             $table->index(['user_id', 'created_at']);
         });
 
-        // Saldo stok yang sudah ada direkam sebagai mutasi awal tanpa menghilangkan nilainya.
+        // Saldo lama dicatat secara terpisah agar tidak dihitung sebagai pembelian bulan ini.
         $now = now();
         DB::table('products')->where('stok', '>', 0)->orderBy('id')->chunkById(500, function ($products) use ($now): void {
             $rows = [];
@@ -31,7 +31,7 @@ return new class extends Migration
                 $rows[] = [
                     'product_id' => $product->id,
                     'user_id' => null,
-                    'jenis' => 'masuk',
+                    'jenis' => 'saldo_awal',
                     'jumlah' => $product->stok,
                     'stok_sebelum' => 0,
                     'stok_sesudah' => $product->stok,
