@@ -3,23 +3,30 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $email = config('inventory.admin_email');
+        $password = config('inventory.admin_password');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        if (! $email || ! $password || strlen($password) < 12) {
+            throw new RuntimeException('Atur ADMIN_EMAIL dan ADMIN_PASSWORD minimal 12 karakter pada .env sebelum menjalankan db:seed.');
+        }
+
+        if (User::query()->where('email', $email)->exists()) {
+            return;
+        }
+
+        $admin = new User([
+            'name' => 'Administrator',
+            'email' => $email,
+            'password' => Hash::make($password),
         ]);
+        $admin->forceFill(['role' => 'admin'])->save();
     }
 }

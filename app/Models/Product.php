@@ -3,19 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    protected $fillable = [
-        'category_id',
-        'kode_barang',
-        'nama_barang',
-        'harga',
-        'stok',
-    ];
+    use SoftDeletes;
 
-    public function category()
+    protected $fillable = ['category_id', 'kode_barang', 'nama_barang', 'harga'];
+
+    protected function casts(): array
+    {
+        return ['harga' => 'integer', 'stok' => 'integer'];
+    }
+
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

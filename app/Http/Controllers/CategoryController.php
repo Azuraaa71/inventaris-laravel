@@ -3,35 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    // READ: Menampilkan daftar kategori
-    public function index()
+    public function index(): View
     {
-        $categories = Category::all();
+        $categories = Category::query()->withCount('products')->orderBy('nama_kategori')->get();
         return view('categories.index', compact('categories'));
     }
 
-    // CREATE: Menyimpan kategori baru
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nama_kategori' => 'required',
+            'nama_kategori' => ['required', 'string', 'max:100', 'unique:categories,nama_kategori'],
         ]);
 
-        // Menggunakan $validated agar token CSRF (_token) diabaikan
         Category::create($validated);
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan!');
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
 
-    // DELETE: Menghapus kategori
-    public function destroy(Category $category)
+    public function destroy(Category $category): RedirectResponse
     {
+        if ($category->products()->exists()) {
+            return back()->withErrors(['category' => 'Kategori tidak dapat dihapus karena masih digunakan oleh produk.']);
+        }
+
         $category->delete();
 
-        return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus!');
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

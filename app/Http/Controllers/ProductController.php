@@ -2,70 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    // READ: Menampilkan daftar produk
-    public function index()
+    public function index(): View
     {
-        $products = Product::with('category')->latest()->get();
+        $products = Product::query()->with('category')->orderBy('nama_barang')->get();
         return view('products.index', compact('products'));
     }
 
-    // CREATE (Form): Menampilkan form tambah produk
-    public function create()
+    public function create(): View
     {
-        $categories = Category::all();
+        $categories = Category::query()->orderBy('nama_kategori')->get();
         return view('products.create', compact('categories'));
     }
 
-    // CREATE (Store): Menyimpan data ke database
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'category_id' => 'required',
-            'kode_barang'  => 'required|unique:products',
-            'nama_barang'  => 'required',
-            'harga'        => 'required|numeric',
-            'stok'         => 'required|integer',
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'kode_barang' => ['required', 'string', 'max:100', 'unique:products,kode_barang'],
+            'nama_barang' => ['required', 'string', 'max:255'],
+            'harga' => ['required', 'integer', 'min:0'],
         ]);
 
         Product::create($validated);
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan. Catat stok awal melalui transaksi stok.');
     }
 
-    // EDIT (Form): Menampilkan form edit produk
-    public function edit(Product $product)
+    public function edit(Product $product): View
     {
-        $categories = Category::all();
+        $categories = Category::query()->orderBy('nama_kategori')->get();
         return view('products.edit', compact('product', 'categories'));
     }
 
-    // UPDATE: Memperbarui data produk
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
-            'category_id' => 'required',
-            'kode_barang'  => 'required|unique:products,kode_barang,'.$product->id,
-            'nama_barang'  => 'required',
-            'harga'        => 'required|numeric',
-            'stok'         => 'required|integer',
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'kode_barang' => ['required', 'string', 'max:100', Rule::unique('products', 'kode_barang')->ignore($product->id)],
+            'nama_barang' => ['required', 'string', 'max:255'],
+            'harga' => ['required', 'integer', 'min:0'],
         ]);
 
         $product->update($validated);
 
-        return redirect()->route('products.index')->with('success', 'Data produk berhasil diperbarui!');
+        return redirect()->route('products.index')->with('success', 'Data produk berhasil diperbarui.');
     }
 
-    // DELETE: Menghapus data produk
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
+        if ((int) $product->stok !== 0) {
+            return back()->withErrors(['product' => 'Produk hanya dapat diarsipkan ketika stoknya sudah nol.']);
+        }
+
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil diarsipkan.');
     }
 }
