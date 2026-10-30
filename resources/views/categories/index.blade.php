@@ -1,51 +1,67 @@
 @extends('layouts.app')
 
+@section('title', 'Kategori · Inventaris Gudang')
+
 @section('content')
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow-sm p-3 mb-3 bg-white">
-            <h5 class="mb-3">Tambah Kategori Baru</h5>
-            <form action="{{ route('categories.store') }}" method="POST">
-                @csrf
-                <div class="mb-3">
-                    <label class="form-label">Nama Kategori</label>
-                    <input type="text" name="nama_kategori" class="form-control" placeholder="Contoh: Elektronik" required>
-                </div>
-                <button class="btn btn-success w-100">Simpan Kategori</button>
-            </form>
+<div class="mb-3">
+    <h1 class="h3 mb-1">Kategori Barang</h1>
+    <p class="text-muted mb-0">Kategori membantu mengelompokkan produk inventaris.</p>
+</div>
+<div class="row g-4">
+    @if (auth()->user()->isAdmin())
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <h2 class="h5 mb-3">Tambah Kategori</h2>
+                @if ($errors->any())
+                    <div class="alert alert-danger"><ul class="mb-0">
+                        @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                    </ul></div>
+                @endif
+                <form action="{{ route('categories.store') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="nama_kategori" class="form-label">Nama Kategori</label>
+                        <input id="nama_kategori" type="text" name="nama_kategori"
+                            value="{{ old('nama_kategori') }}" class="form-control"
+                            maxlength="100" placeholder="Contoh: Elektronik" required>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Simpan Kategori</button>
+                </form>
+            </div>
         </div>
-    </div>
-    <div class="col-md-8">
-        <div class="card shadow-sm p-3 bg-white">
-            <h5 class="mb-3">Daftar Kategori</h5>
-            <table class="table table-bordered align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Nama Kategori</th>
-                        <th style="width: 100px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($categories as $index => $category)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $category->nama_kategori }}</td>
-                        <td>
-                            <form action="{{ route('categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Hapus kategori ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="text-center text-muted">Belum ada kategori. Silakan tambah kategori di sebelah kiri.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    @endif
+    <div class="{{ auth()->user()->isAdmin() ? 'col-lg-8' : 'col-12' }}">
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th class="ps-3">#</th><th>Nama Kategori</th><th class="text-center">Jumlah Produk</th>
+                            @if (auth()->user()->isAdmin()) <th class="text-end pe-3">Aksi</th> @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($categories as $index => $category)
+                            <tr>
+                                <td class="ps-3">{{ $index + 1 }}</td>
+                                <td class="fw-semibold">{{ $category->nama_kategori }}</td>
+                                <td class="text-center">{{ $category->products_count }}</td>
+                                @if (auth()->user()->isAdmin())
+                                    <td class="text-end pe-3">
+                                        <form action="{{ route('categories.destroy', $category) }}" method="POST"
+                                            onsubmit="return confirm('Hapus kategori ini? Kategori yang masih dipakai tidak dapat dihapus.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
+                                        </form>
+                                    </td>
+                                @endif
+                            </tr>
+                        @empty
+                            <tr><td colspan="{{ auth()->user()->isAdmin() ? 4 : 3 }}" class="text-center text-muted py-5">Belum ada kategori barang.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
