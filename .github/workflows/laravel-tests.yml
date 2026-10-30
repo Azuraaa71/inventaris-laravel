@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   tests:
-    name: PHP 8.3 · Laravel test suite
+    name: PHP 8.4 · Laravel test suite
     runs-on: ubuntu-latest
     env:
       APP_ENV: testing
@@ -33,7 +33,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: mbstring, pdo_sqlite, sqlite3
           coverage: none
 
