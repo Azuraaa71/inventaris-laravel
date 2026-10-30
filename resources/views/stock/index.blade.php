@@ -102,9 +102,21 @@
                                     @if ($movement->product?->trashed()) <span class="badge text-bg-secondary">Diarsipkan</span> @endif
                                     @if ($movement->keterangan) <div class="small text-muted">{{ $movement->keterangan }}</div> @endif
                                 </td>
-                                <td><span class="badge {{ $movement->jenis === 'masuk' ? 'text-bg-success' : 'text-bg-warning' }}">
-                                    {{ $movement->jenis === 'masuk' ? 'Masuk' : 'Keluar' }}
-                                </span></td>
+                                <td>
+                                    @php
+                                        $movementLabel = match ($movement->jenis) {
+                                            'masuk' => 'Masuk',
+                                            'keluar' => 'Keluar',
+                                            default => 'Saldo Awal',
+                                        };
+                                        $movementColor = match ($movement->jenis) {
+                                            'masuk' => 'text-bg-success',
+                                            'keluar' => 'text-bg-warning',
+                                            default => 'text-bg-secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $movementColor }}">{{ $movementLabel }}</span>
+                                </td>
                                 <td class="text-end fw-semibold">{{ number_format($movement->jumlah, 0, ',', '.') }}</td>
                                 <td class="text-nowrap">{{ number_format($movement->stok_sebelum, 0, ',', '.') }} → {{ number_format($movement->stok_sesudah, 0, ',', '.') }}</td>
                                 <td class="text-nowrap small">{{ $movement->user?->name ?? 'Sistem / saldo awal' }}</td>
